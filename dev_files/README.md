@@ -6,9 +6,11 @@
 
 ### 测试相关
 - `tests/` - 单元测试文件
-- `test_files/` - 测试用的PDF和图片文件
 - `test_*.py` - 各种测试脚本
 - `pytest.ini` - pytest配置文件
+- `api_test.http` - HTTP API测试文件
+
+**注意**: `test_files/` 目录（包含测试用的PDF和图片文件）已移动到项目根目录，便于直接访问。
 
 ### 开发工具和脚本
 - `demo_without_pymupdf.py` - 不使用PyMuPDF的演示脚本
