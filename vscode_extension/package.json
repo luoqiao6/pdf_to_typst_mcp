@@ -1,0 +1,111 @@
+{
+  "name": "pdf-to-typst-converter",
+  "displayName": "PDF to Typst Converter",
+  "description": "AI增强的PDF转Typst转换工具",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "pdf",
+    "typst",
+    "converter",
+    "ai",
+    "document"
+  ],
+  "activationEvents": [
+    "onCommand:pdfToTypst.convert",
+    "onCommand:pdfToTypst.analyze",
+    "onCommand:pdfToTypst.preview"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pdfToTypst.convert",
+        "title": "转换PDF为Typst",
+        "category": "PDF to Typst"
+      },
+      {
+        "command": "pdfToTypst.analyze",
+        "title": "分析PDF结构",
+        "category": "PDF to Typst"
+      },
+      {
+        "command": "pdfToTypst.preview",
+        "title": "预览Typst输出",
+        "category": "PDF to Typst"
+      },
+      {
+        "command": "pdfToTypst.openSettings",
+        "title": "打开设置",
+        "category": "PDF to Typst"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "pdfToTypst.convert",
+          "when": "resourceExtname == .pdf",
+          "group": "navigation"
+        },
+        {
+          "command": "pdfToTypst.analyze",
+          "when": "resourceExtname == .pdf",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "pdfToTypst.convert",
+          "when": "resourceExtname == .pdf",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PDF to Typst Converter",
+      "properties": {
+        "pdfToTypst.mcpServerPath": {
+          "type": "string",
+          "default": "",
+          "description": "MCP服务器启动脚本的路径"
+        },
+        "pdfToTypst.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Python解释器路径"
+        },
+        "pdfToTypst.outputDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "默认输出目录（空则使用PDF同级目录）"
+        },
+        "pdfToTypst.useAiEnhancement": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用AI增强转换"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  }
+}

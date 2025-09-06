@@ -1,0 +1,8 @@
+{
+  "pdfToTypst.mcpServerPath": "/Users/luoqiao/repos/MyProjects/PDFConvert/mcp_server/start_server.py",
+  "pdfToTypst.pythonPath": "/Users/luoqiao/repos/MyProjects/PDFConvert/venv/bin/python",
+  "pdfToTypst.outputDirectory": "",
+  "pdfToTypst.useAiEnhancement": true,
+  "pdfToTypst.httpApiUrl": "http://localhost:8000",
+  "pdfToTypst.autoStartHttpApi": true
+}

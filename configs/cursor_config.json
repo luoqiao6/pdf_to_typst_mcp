@@ -1,0 +1,71 @@
+{
+  "name": "PDF转Typst转换工具",
+  "description": "AI增强的PDF到Typst转换服务",
+  "version": "1.0.0",
+  "apis": [
+    {
+      "name": "pdf_to_typst_api",
+      "baseUrl": "http://localhost:8000",
+      "endpoints": [
+        {
+          "path": "/analyze",
+          "method": "POST",
+          "description": "分析PDF文档结构",
+          "parameters": {
+            "pdf_path": {
+              "type": "string",
+              "description": "PDF文件路径",
+              "required": true
+            }
+          }
+        },
+        {
+          "path": "/convert",
+          "method": "POST", 
+          "description": "AI增强转换PDF为Typst",
+          "parameters": {
+            "pdf_path": {
+              "type": "string",
+              "description": "PDF文件路径",
+              "required": true
+            },
+            "output_path": {
+              "type": "string",
+              "description": "输出文件路径",
+              "required": false
+            }
+          }
+        },
+        {
+          "path": "/preview",
+          "method": "POST",
+          "description": "预览Typst输出",
+          "parameters": {
+            "pdf_path": {
+              "type": "string", 
+              "description": "PDF文件路径",
+              "required": true
+            },
+            "max_pages": {
+              "type": "integer",
+              "description": "预览页数",
+              "default": 3
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "prompts": [
+    {
+      "name": "convert_pdf_to_typst",
+      "description": "AI增强转换PDF为Typst格式",
+      "template": "请将PDF文件 {{pdf_path}} 转换为Typst格式，使用AI增强转换以获得更好的布局识别效果。"
+    },
+    {
+      "name": "analyze_pdf_structure", 
+      "description": "分析PDF文档结构",
+      "template": "请分析PDF文件 {{pdf_path}} 的文档结构，包括页面布局、文本层次、表格和图片等元素。"
+    }
+  ]
+}

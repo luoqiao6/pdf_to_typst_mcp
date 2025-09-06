@@ -1,0 +1,61 @@
+{
+  "parser": {
+    "max_file_size_mb": 100,
+    "extract_images": true,
+    "extract_tables": true,
+    "min_table_rows": 2,
+    "min_table_cols": 2,
+    "image_min_width": 50,
+    "image_min_height": 50,
+    "text_extraction_method": "layout",
+    "table_settings": {
+      "vertical_strategy": "lines",
+      "horizontal_strategy": "lines",
+      "snap_tolerance": 3,
+      "join_tolerance": 3
+    }
+  },
+  "analyzer": {
+    "heading_font_size_threshold": 2.0,
+    "paragraph_line_spacing_threshold": 5.0,
+    "paragraph_indent_threshold": 20.0,
+    "heading_patterns": [
+      "^第[一二三四五六七八九十\\d]+章",
+      "^第[一二三四五六七八九十\\d]+节",
+      "^\\d+\\.\\d*\\s*",
+      "^[一二三四五六七八九十]+[、.]",
+      "^[A-Z]+\\.\\s*",
+      "^Chapter\\s+\\d+",
+      "^Section\\s+\\d+"
+    ],
+    "list_patterns": [
+      "^\\s*[•·▪▫◦‣⁃]\\s*",
+      "^\\s*\\d+[.、]\\s*",
+      "^\\s*[a-zA-Z][.、)]\\s*",
+      "^\\s*[一二三四五六七八九十]+[.、)]\\s*",
+      "^\\s*[(（]\\d+[)）]\\s*"
+    ]
+  },
+  "generator": {
+    "paper_size": "a4",
+    "margin": "2.5cm",
+    "font_family": "Times New Roman",
+    "font_size": "11pt",
+    "line_spacing": "1.5em",
+    "heading_numbering": true,
+    "heading_spacing": "1.2em",
+    "paragraph_spacing": "1em",
+    "paragraph_indent": "2em",
+    "table_stroke": "0.5pt",
+    "table_fill": "none",
+    "image_width": "80%",
+    "image_alignment": "center",
+    "include_metadata": true,
+    "include_toc": true,
+    "include_page_numbers": true
+  },
+  "save_images": true,
+  "create_output_dir": true,
+  "overwrite_existing": false,
+  "log_level": "INFO"
+}

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "pdf-to-typst": {
+      "command": "python",
+      "args": ["/Users/luoqiao/repos/MyProjects/PDFConvert/mcp_server/start_server.py"],
+      "env": {
+        "PYTHONPATH": "/Users/luoqiao/repos/MyProjects/PDFConvert"
+      }
+    }
+  }
+}
