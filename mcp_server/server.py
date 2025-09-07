@@ -68,9 +68,18 @@ class PDFToTypstMCPServer:
         """设置MCP处理器"""
         
         @self.server.list_tools()
-        async def list_tools() -> ListToolsResult:
+        async def list_tools():
             """列出可用的工具"""
-            return ListToolsResult(tools=[
+            return [
+                Tool(
+                    name="check_multimodal_capability",
+                    description="检测当前AI模型是否支持图片识别（多模态能力）- PDF转换需要多模态AI",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                ),
                 Tool(
                     name="start_pdf_conversion",
                     description="开始PDF转Typst转换流程，提取页面内容并准备供AI分析",
@@ -153,13 +162,15 @@ class PDFToTypstMCPServer:
                         "additionalProperties": False
                     }
                 )
-            ])
+            ]
         
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
+        async def call_tool(name: str, arguments: Dict[str, Any]):
             """处理工具调用"""
             try:
-                if name == "start_pdf_conversion":
+                if name == "check_multimodal_capability":
+                    return await self._check_multimodal_capability(arguments)
+                elif name == "start_pdf_conversion":
                     return await self._start_conversion(arguments)
                 elif name == "analyze_pdf_structure":
                     return await self._analyze_pdf_structure(arguments)
@@ -174,16 +185,10 @@ class PDFToTypstMCPServer:
             
             except Exception as e:
                 logger.error(f"工具调用失败 {name}: {e}")
-                return CallToolResult(
-                    content=[TextContent(
-                        type="text",
-                        text=f"❌ 操作失败: {str(e)}"
-                    )],
-                    isError=True
-                )
+                raise Exception(f"❌ 操作失败: {str(e)}")
         
         @self.server.list_resources()
-        async def list_resources() -> ListResourcesResult:
+        async def list_resources():
             """列出可用的资源（页面图片、文本内容等）"""
             resources = []
             
@@ -212,7 +217,7 @@ class PDFToTypstMCPServer:
                     mimeType="application/json"
                 ))
             
-            return ListResourcesResult(resources=resources)
+            return resources
         
         @self.server.read_resource()
         async def read_resource(uri: str) -> ResourceContents:
@@ -288,9 +293,9 @@ class PDFToTypstMCPServer:
                 raise
         
         @self.server.list_prompts()
-        async def list_prompts() -> ListPromptsResult:
+        async def list_prompts():
             """列出可用的提示模板"""
-            return ListPromptsResult(prompts=[
+            return [
                 Prompt(
                     name="analyze_pdf_layout",
                     description="分析PDF页面布局结构的AI提示模板，用于识别文档元素和排版特征"
@@ -303,24 +308,79 @@ class PDFToTypstMCPServer:
                     name="optimize_typst_output",
                     description="优化和完善生成的Typst代码的提示模板"
                 )
-            ])
+            ]
         
         @self.server.get_prompt()
-        async def get_prompt(name: str, arguments: Optional[Dict[str, Any]] = None) -> GetPromptResult:
+        async def get_prompt(name: str, arguments: Optional[Dict[str, Any]] = None):
             """获取提示模板内容"""
             if name == "analyze_pdf_layout":
                 messages = self._get_layout_analysis_prompt(arguments)
-                return GetPromptResult(messages=messages)
+                return messages
             elif name == "generate_typst_code":
                 messages = self._get_typst_generation_prompt(arguments)
-                return GetPromptResult(messages=messages)
+                return messages
             elif name == "optimize_typst_output":
                 messages = self._get_typst_optimization_prompt(arguments)
-                return GetPromptResult(messages=messages)
+                return messages
             else:
                 raise ValueError(f"未知提示模板: {name}")
     
-    async def _start_conversion(self, args: Dict[str, Any]) -> CallToolResult:
+    async def _check_multimodal_capability(self, args: Dict[str, Any]):
+        """检测当前AI模型是否支持多模态（图片识别）能力"""
+        
+        # 创建一个简单的测试图片 (1x1像素的PNG)
+        test_image_data = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        )
+        
+        # 返回包含图片的内容，让AI分析
+        return [
+                TextContent(
+                    type="text", 
+                    text="""🔍 **多模态能力检测**
+
+⚠️ **重要提示**: 此PDF转Typst MCP服务需要AI具备图片识别能力！
+
+🧪 **检测方法**: 下面有一个测试图片，请描述你能看到什么：
+
+如果你能看到并描述这个图片，说明当前模型支持多模态 ✅
+如果你无法处理图片，需要切换到支持图片的模型 ❌
+
+📋 **支持的多模态模型**:
+• Claude 3.5 Sonnet (推荐)
+• GPT-4V, GPT-4o
+• Gemini Pro Vision
+• Qwen-VL, LLaVA, InternVL 等
+
+❌ **不支持的模型**:
+• GPT-3.5, Claude Instant
+• 所有纯文本大模型
+
+💡 **如何切换模型**:
+- VSCode: 设置 → AI Model → 选择支持视觉的模型
+- Cursor: Ctrl+Shift+P → Select Model → 选择多模态模型  
+- Trae: 设置中选择多模态模型
+
+🚀 **检测完成后**，如果当前模型支持多模态，就可以开始使用PDF转换功能了！"""
+                ),
+                ImageContent(
+                    type="image",
+                    data=base64.b64encode(test_image_data).decode('utf-8'),
+                    mimeType="image/png"
+                ),
+                TextContent(
+                    type="text",
+                    text="""
+📊 **检测结果判断**:
+
+✅ **如果你能描述上面的图片内容** → 当前模型支持多模态，可以使用PDF转换服务
+❌ **如果你提示无法处理图片** → 需要切换到支持图片的多模态大模型
+
+🔄 **下一步**: 如果检测通过，使用 `start_pdf_conversion` 开始转换PDF文件。"""
+                )
+            ]
+
+    async def _start_conversion(self, args: Dict[str, Any]):
         """开始PDF转换流程"""
         pdf_path = Path(args["pdf_path"])
         session_id = args.get("session_id") or str(uuid.uuid4())
@@ -352,8 +412,7 @@ class PDFToTypstMCPServer:
             # 构建分析指导
             analysis_guide = self._build_analysis_guide(session_id, session.total_pages)
             
-            return CallToolResult(
-                content=[TextContent(
+            return [TextContent(
                     type="text",
                     text=f"✅ PDF转换会话已启动！\n\n"
                          f"📄 **文档信息**:\n"
@@ -365,13 +424,12 @@ class PDFToTypstMCPServer:
                          f"{analysis_guide}\n\n"
                          f"💡 **提示**: 您现在可以访问页面图片和文本资源，使用AI提示模板进行智能分析。"
                 )]
-            )
             
         except Exception as e:
             logger.error(f"启动转换失败: {e}")
             raise
     
-    async def _analyze_pdf_structure(self, args: Dict[str, Any]) -> CallToolResult:
+    async def _analyze_pdf_structure(self, args: Dict[str, Any]):
         """分析PDF结构"""
         pdf_path = Path(args["pdf_path"])
         
@@ -380,10 +438,7 @@ class PDFToTypstMCPServer:
             doc_info = await asyncio.to_thread(self.pipeline.get_document_info, pdf_path)
             
             if "error" in doc_info:
-                return CallToolResult(
-                    content=[TextContent(type="text", text=f"❌ 分析失败: {doc_info['error']}")],
-                    isError=True
-                )
+                raise Exception(f"❌ 分析失败: {doc_info['error']}")
             
             # 格式化输出
             analysis_text = f"""📊 **PDF结构分析报告**
@@ -414,15 +469,13 @@ class PDFToTypstMCPServer:
             
             analysis_text += f"\n💡 **建议**: 使用 `start_pdf_conversion` 开始详细转换流程。"
             
-            return CallToolResult(
-                content=[TextContent(type="text", text=analysis_text)]
-            )
+            return [TextContent(type="text", text=analysis_text)]
             
         except Exception as e:
             logger.error(f"结构分析失败: {e}")
             raise
     
-    async def _preview_typst_output(self, args: Dict[str, Any]) -> CallToolResult:
+    async def _preview_typst_output(self, args: Dict[str, Any]):
         """预览Typst输出"""
         pdf_path = Path(args["pdf_path"])
         max_pages = args.get("max_pages", 3)
@@ -436,10 +489,7 @@ class PDFToTypstMCPServer:
             )
             
             if "error" in preview_result:
-                return CallToolResult(
-                    content=[TextContent(type="text", text=f"❌ 预览失败: {preview_result['error']}")],
-                    isError=True
-                )
+                raise Exception(f"❌ 预览失败: {preview_result['error']}")
             
             # 格式化输出
             stats = preview_result['statistics']
@@ -461,15 +511,13 @@ class PDFToTypstMCPServer:
 💡 **提示**: 这只是前{max_pages}页的预览。使用 `start_pdf_conversion` 进行完整转换。
 """
             
-            return CallToolResult(
-                content=[TextContent(type="text", text=preview_text)]
-            )
+            return [TextContent(type="text", text=preview_text)]
             
         except Exception as e:
             logger.error(f"预览失败: {e}")
             raise
     
-    async def _finalize_conversion(self, args: Dict[str, Any]) -> CallToolResult:
+    async def _finalize_conversion(self, args: Dict[str, Any]):
         """完成转换流程"""
         session_id = args["session_id"]
         typst_content = args["typst_content"]
@@ -539,23 +587,19 @@ class PDFToTypstMCPServer:
 🎉 **转换成功！** 您的PDF已经转换为Typst格式，得益于AI大模型的智能布局识别和代码生成能力。
 """
             
-            return CallToolResult(
-                content=[TextContent(type="text", text=result_text)]
-            )
+            return [TextContent(type="text", text=result_text)]
             
         except Exception as e:
             logger.error(f"完成转换失败: {e}")
             raise
     
-    async def _list_active_sessions(self, args: Dict[str, Any]) -> CallToolResult:
+    async def _list_active_sessions(self, args: Dict[str, Any]):
         """列出活跃会话"""
         if not self.sessions:
-            return CallToolResult(
-                content=[TextContent(
+            return [TextContent(
                     type="text",
                     text="📭 **当前没有活跃的转换会话**\n\n使用 `start_pdf_conversion` 开始新的转换。"
                 )]
-            )
         
         sessions_text = "📋 **活跃的转换会话**:\n\n"
         
@@ -567,9 +611,7 @@ class PDFToTypstMCPServer:
         
         sessions_text += "💡 使用会话ID调用 `finalize_conversion` 完成转换。"
         
-        return CallToolResult(
-            content=[TextContent(type="text", text=sessions_text)]
-        )
+        return [TextContent(type="text", text=sessions_text)]
     
     def _build_analysis_guide(self, session_id: str, total_pages: int) -> str:
         """构建AI分析指导"""
@@ -986,7 +1028,7 @@ class PDFToTypstMCPServer:
         
         return fixed_content
     
-    async def cleanup_old_sessions(self, max_age_seconds: float = 3600):
+    def cleanup_old_sessions(self, max_age_seconds: float = 3600):
         """清理过期的会话"""
         current_time = asyncio.get_event_loop().time()
         expired_sessions = []
@@ -998,6 +1040,8 @@ class PDFToTypstMCPServer:
         for session_id in expired_sessions:
             del self.sessions[session_id]
             logger.info(f"清理过期会话: {session_id}")
+        
+        return len(expired_sessions)
     
     async def run(self):
         """运行MCP服务器"""
@@ -1012,7 +1056,8 @@ class PDFToTypstMCPServer:
                     write_stream, 
                     InitializationOptions(
                         server_name="pdf-to-typst",
-                        server_version="1.0.0"
+                        server_version="1.0.0",
+                        capabilities={}
                     )
                 )
         
@@ -1032,15 +1077,14 @@ async def main():
     # 创建并运行服务器
     server = PDFToTypstMCPServer()
     
-    # 启动清理任务
-    cleanup_task = asyncio.create_task(
-        server.cleanup_old_sessions()
-    )
-    
     try:
         await server.run()
+    except KeyboardInterrupt:
+        logger.info("收到中断信号，正在关闭服务器...")
+    except Exception as e:
+        logger.error(f"服务器运行错误: {e}")
     finally:
-        cleanup_task.cancel()
+        logger.info("PDF转Typst MCP服务器已关闭")
 
 
 if __name__ == "__main__":
